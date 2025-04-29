@@ -1,6 +1,10 @@
-// /middlewares/corsMiddleware.js
-
 const cors = require('cors');
+
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    // add more origins if needed
+];
 
 const corsMiddleware = cors({
     origin: function (origin, callback) {
@@ -16,4 +20,5 @@ const corsMiddleware = cors({
     allowedHeaders: ["Content-Type", "Authorization"],
 });
 
+// 👉 just export this directly
 module.exports = corsMiddleware;

@@ -1,6 +1,7 @@
 const tokenGenerator = require("../utils/tokenGenerator");
 const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
+const { addLoginCredits } = require("../utils/creditManager");
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -9,14 +10,15 @@ const registerUser = async (req, res) => {
     try {
         const { name, email, password, profileImageUrl, adminInviteToken } = req.body;
 
+
         // Check if user already exists
         const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: "User already exists" });
         }
 
-        // Determine user role: Admin if correct token is provided, otherwise Member
-        let role = "member";
+        // Determine user role
+        let role = "user";
         if (adminInviteToken && adminInviteToken === process.env.ADMIN_INVITE_TOKEN) {
             role = "admin";
         }
@@ -27,10 +29,14 @@ const registerUser = async (req, res) => {
 
         // Create new user
         const user = await User.create({
-            name, email, password: hashedPassword, profileImageUrl, role,
+            name,
+            email,
+            password: hashedPassword,
+            profileImageUrl: profileImageUrl || "", // <-- fallback
+            role,
         });
 
-        // Return user data with JWT
+        // Respond
         res.status(201).json({
             _id: user._id,
             name: user.name,
@@ -40,9 +46,11 @@ const registerUser = async (req, res) => {
             token: tokenGenerator(user._id),
         });
     } catch (error) {
+        console.error("Register Error:", error); // <-- log full error
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
 
 // @desc    Login user
 // @route   POST /api/auth/login
@@ -58,13 +66,14 @@ const loginUser = async (req, res) => {
                 message: "Invalid Email or User not exist!"
             });
         }
-
+        
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({
                 message: "Invalid Password. Please write correct password!"
             });
         }
+        await addLoginCredits(user._id);
 
         // Return user data with JWT
         res.status(201).json({
@@ -114,7 +123,7 @@ const updateUserProfile = async (req, res) => {
         user.email = req.body.email || user.email;
         user.name = req.body.name || user.name;
 
-        if(req.body.password){
+        if (req.body.password) {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(req.body.password, salt);
             user.password = hashedPassword;

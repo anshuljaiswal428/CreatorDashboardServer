@@ -7,6 +7,8 @@ const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
 const feedRoutes = require("./routes/feedRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
@@ -19,9 +21,9 @@ app.use(express.json());
 
 // API Routes
 app.use("/api/auth", authRoutes);
-// app.use('/api/user', userRoutes);
-app.use('/api/feed', feedRoutes); 
-// app.use('/api/admin', adminRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/feed", feedRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use(error);
 

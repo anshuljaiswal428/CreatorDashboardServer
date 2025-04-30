@@ -25,8 +25,8 @@ out/
 coverage/
 
 # Environment files
-# .env
-# .env.*  # Covers .env.local, .env.development, etc.
+.env
+.env.*  # Covers .env.local, .env.development, etc.
 
 # Local configuration files
 *.local
